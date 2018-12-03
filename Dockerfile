@@ -9,3 +9,4 @@ RUN yum install -y httpd
 
 EXPOSE 80
 EXPOSE 10080
+EXPOSE 10081
