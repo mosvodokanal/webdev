@@ -8,7 +8,7 @@ RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.
 RUN yum update -y
 
 # Install Tools
-RUN yum install -y mc less at curl crontabs git wget
+RUN yum install -y mc less at curl crontabs git wget net-tools
 
 # for development
 RUN yum -y group install "Development Tools"
@@ -94,6 +94,17 @@ RUN { yes "" | pecl install uuid; } \
          echo "extension=uuid.so"; \
        } > /etc/php.d/40-uuid.ini 
 
+# Setting xdebug
+RUN { \
+	echo "zend_extension = xdebug.so"; \
+	echo "xdebug.remote_enable = 1"; \
+	echo "xdebug.remote_connect_back = 1"; \
+	echo "xdebug.remote_port = 9000"; \
+	echo "xdebug.var_display_max_data = 2048"; \
+	echo "xdebug.var_display_max_depth = 128"; \
+	echo "xdebug.max_nesting_level = 500"; \
+    } > /etc/php.d/15-xdebug.ini 
+
 #Install pear modules
 RUN pear install XML_Serializer-0.21.0 \
     && pear install MIME_Type-1.4.1;
@@ -120,6 +131,6 @@ COPY ./conf/php.ini /etc/php.ini
 COPY ./conf/freetds.conf /usr/local/etc/freetds.conf
 
 
-EXPOSE 80 10080
+EXPOSE 9000 10080
 
 CMD ["/usr/sbin/init"]

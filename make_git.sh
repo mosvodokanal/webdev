@@ -7,6 +7,6 @@
 #git config --global core.excludesfile ~/.gitignore
 
 git add .
-git commit -m "rc 0.0.2"
+git commit -m "rc 0.0.3"
 git remote add origin https://github.com/mosvodokanal/webdev.git
 git push -u origin master
