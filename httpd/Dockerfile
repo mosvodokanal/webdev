@@ -1,4 +1,6 @@
+# Version: 0.0.3
 FROM local/c7-systemd
+MAINTAINER Mosvodokanal <mvk-ais@yandex.ru>
 
 # include repositories
 RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
