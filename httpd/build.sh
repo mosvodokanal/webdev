@@ -1,19 +1,23 @@
 #!/bin/sh
 
-#docker build --rm -t local/c7-systemd-httpd .
+#docker build \
+#    --build-arg HTTP_PROXY=http://172.16.55.221:3128 \
+#    --build-arg HTTPS_PROXY=http://172.16.55.221:3128 \
+#    --rm -t local/httpd .
 
-#docker stop httpd1
-#docker rm httpd1
+#docker tag local/httpd 172.16.3.16:5000/webdev_httpd
+#docker push 172.16.3.16:5000/webdev_httpd
 
-#docker run -d --name httpd1 -ti --privileged=true \
-#           -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-#           -v /mnt/share/m/Shared/html:/var/www/html \
-#           -p 10080:10080 -p 9000:9000 \
-#           local/c7-systemd-httpd
+#docker stop httpd-test
+#docker rm httpd-test
 
+#docker run -d --name httpd-test -ti \
+#           --mount type=volume,volume-opt=o=addr=172.16.55.221,volume-opt=device=:/mnt/share/p/Shared/html,volume-opt=type=nfs,source=vol_html,target=/var/www/html \
+#           -p 10080:10080 -p 9009:9000 \
+#           local/httpd \
 
-#docker start httpd1
-#docker attach httpd1
+# /bin/bash -c "rm -rf /run/httpd/* /tmp/httpd*; /usr/sbin/httpd -D FOREGROUND"
 
-docker exec -ti httpd1 /bin/bash
+#docker start httpd-test
+#docker exec -ti httpd-test /bin/bash
 

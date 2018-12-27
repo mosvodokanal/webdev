@@ -1,16 +1,19 @@
-# Version: 0.0.3
-FROM local/c7-systemd
+# Version: 0.0.4
+FROM centos:7
+
+ENV container docker
+
 MAINTAINER Mosvodokanal <mvk-ais@yandex.ru>
 
 # include repositories
-RUN rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
- && rpm -Uvh https://centos7.iuscommunity.org/ius-release.rpm
+RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
+ && yum install -y https://centos7.iuscommunity.org/ius-release.rpm
 
 # normal updates
 RUN yum update -y
 
 # Install Tools
-RUN yum install -y mc less at curl crontabs git wget net-tools
+RUN yum install -y mc less curl git wget net-tools
 
 # for development
 RUN yum -y group install "Development Tools"
@@ -105,25 +108,22 @@ RUN { \
 	echo "xdebug.var_display_max_data = 2048"; \
 	echo "xdebug.var_display_max_depth = 128"; \
 	echo "xdebug.max_nesting_level = 500"; \
+	echo "xdebug.remote_log = /tmp/xdebug.log"; \
     } > /etc/php.d/15-xdebug.ini 
 
 #Install pear modules
 RUN pear install XML_Serializer-0.21.0 \
-    && pear install MIME_Type-1.4.1;
+ && pear install MIME_Type-1.4.1;
 
 # Cache cleaning
 RUN yum clean all
-
-RUN systemctl enable httpd \
- && systemctl enable crond
-
 
 # Setting
 VOLUME [ "/var/www/html" ]
 
 RUN ln -s /var/www/html/phpodata /usr/share/php/phpodata
 
-# Http setting
+# HTTP setting
 COPY ./conf/vhost.conf /etc/httpd/conf.d/vhost.conf
 
 # PHP setting
@@ -133,6 +133,8 @@ COPY ./conf/php.ini /etc/php.ini
 COPY ./conf/freetds.conf /usr/local/etc/freetds.conf
 
 #
-EXPOSE 9000 10080
+EXPOSE 1080 1081 9000 10080 10082 10084 10085 10889 10900
 
-CMD ["/usr/sbin/init"]
+ENTRYPOINT [ "/usr/sbin/httpd" ]
+CMD [ "-D", "FOREGROUND" ]
+

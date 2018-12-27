@@ -1,0 +1,64 @@
+version: "3.7"
+
+services:
+  httpd:
+    image: 172.16.3.16:5000/webdev_httpd:latest
+    depends_on:
+      - memcached
+    logging:
+      driver: syslog
+      options:
+        tag: "{{.DaemonName}}(image={{.ImageName}};name={{.Name}};id={{.ID}})"
+    networks:
+      - agent_network
+    environment:
+       XDEBUG_CONFIG: "remote_enable=1 remote_host=172.16.55.220 remote_connect_back=0"
+    ports:
+      - "1080:1080"
+      - "1081:1081"
+      - "9009:9000"
+      - "10080:10080"
+      - "10082:10082"
+      - "10084:10084"
+      - "10085:10085"
+      - "10889:10889"
+      - "10900:10900"
+    volumes:
+      - www_html:/var/www/html/
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == worker]
+
+  memcached:
+    image: memcached:1.5.12
+    logging:
+      driver: syslog
+      options:
+        tag: "{{.DaemonName}}(image={{.ImageName}};name={{.Name}};id={{.ID}})"
+    networks:
+      - agent_network
+    ports:
+      - "11211:11211"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == worker]
+
+networks:
+  agent_network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  www_html:
+    driver_opts:
+      type: "nfs"
+      o: "addr=172.16.55.221,rw"
+      device: ":/mnt/share/p/Shared/html"
+
+
