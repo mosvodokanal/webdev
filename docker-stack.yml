@@ -5,10 +5,6 @@ services:
     image: 172.16.3.16:5000/webdev_httpd:latest
     depends_on:
       - memcached
-    logging:
-      driver: syslog
-      options:
-        tag: "{{.DaemonName}}(image={{.ImageName}};name={{.Name}};id={{.ID}})"
     networks:
       - agent_network
     environment:
@@ -32,12 +28,30 @@ services:
       placement:
         constraints: [node.role == worker]
 
+  mariadb:
+    image: mariadb:10.3
+    environment:
+      MYSQL_ROOT_PASSWORD: sysadmin
+    networks:
+      - agent_network
+    restart: on-failure
+    ports:
+      - "3306:3306"
+      - "4306:3306" 
+      - "5567:5567" 
+      - "5444:5444" 
+      - "5568:5568"
+    volumes:
+      - db_data:/var/lib/mysql
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.hostname == webdev-node1]
+
   memcached:
     image: memcached:1.5.12
-    logging:
-      driver: syslog
-      options:
-        tag: "{{.DaemonName}}(image={{.ImageName}};name={{.Name}};id={{.ID}})"
     networks:
       - agent_network
     ports:
@@ -60,5 +74,10 @@ volumes:
       type: "nfs"
       o: "addr=172.16.55.221,rw"
       device: ":/mnt/share/p/Shared/html"
+  db_data:
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/docker/volumes/mysql
 
 
