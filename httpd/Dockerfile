@@ -84,7 +84,7 @@ RUN yum install -y freetds freetds-devel unixODBC unixODBC-devel; \
         && { \
              echo "extension=pdo_mysql.so"; \
            } > /etc/php.d/30-pdo_mysql.ini; \
-       )
+       ) \
     && ( \
         cd ./interbase \
         && phpize \
@@ -95,7 +95,6 @@ RUN yum install -y freetds freetds-devel unixODBC unixODBC-devel; \
              echo "extension=interbase.so"; \
            } > /etc/php.d/20-interbase.ini; \
        )
-
 
 #Build pecl modules
 RUN yum install -y libmemcached libmemcached-devel zlib-devel \
