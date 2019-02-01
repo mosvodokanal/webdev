@@ -7,10 +7,14 @@ MAINTAINER Mosvodokanal <mvk-ais@yandex.ru>
 
 # include repositories
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
- && yum install -y https://centos7.iuscommunity.org/ius-release.rpm
+ && yum install -y https://centos7.iuscommunity.org/ius-release.rpm \
+ && yum install -y https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm
 
 # normal updates
 RUN yum update -y
+
+# dependens for Microsoft PHP Drivers for SQL Server
+RUN ACCEPT_EULA=Y yum install -y msodbcsql mssql-tools unixODBC-devel
 
 # Install Tools
 RUN yum install -y mc less curl git wget net-tools
@@ -108,6 +112,16 @@ RUN { yes "" | pecl install uuid; } \
          echo "extension=uuid.so"; \
        } > /etc/php.d/40-uuid.ini 
 
+# Microsoft PHP Drivers for SQL Server
+RUN { pecl install sqlsrv; } \
+    && { \
+         echo "extension=sqlsrv.so"; \
+       } > /etc/php.d/20-sqlsrv.ini \
+    && { pecl install pdo_sqlsrv; } \
+    && { \
+         echo "extension=pdo_sqlsrv.so"; \
+       } > /etc/php.d/30-pdo_sqlsrv.ini 
+
 # Setting xdebug
 RUN { \
 	echo "zend_extension = xdebug.so"; \
@@ -130,7 +144,9 @@ RUN yum clean all
 # Setting
 VOLUME [ "/var/www/html" ]
 
+RUN cd /etc && rm -f localtime && ln -s /usr/share/zoneinfo/Europe/Moscow localtime
 RUN ln -s /var/www/html/phpodata /usr/share/php/phpodata
+RUN ln -s /var/www/html/adodb5 /usr/share/php/adodb5
 
 # HTTP setting
 COPY ./conf/vhost.conf /etc/httpd/conf.d/vhost.conf
@@ -142,7 +158,7 @@ COPY ./conf/php.ini /etc/php.ini
 COPY ./conf/freetds.conf /usr/local/etc/freetds.conf
 
 #
-EXPOSE 1080 1081 9000 10080 10082 10084 10085 10889 10900
+EXPOSE 1080 1081 9000 10080 10082 10084 10889 10900
 
 ENTRYPOINT [ "/usr/sbin/httpd" ]
 CMD [ "-D", "FOREGROUND" ]

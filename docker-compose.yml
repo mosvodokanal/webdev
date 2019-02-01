@@ -1,4 +1,4 @@
-version: "3.2"
+version: "2"
 services:
   httpd:
     build: './httpd/'
@@ -11,18 +11,17 @@ services:
     restart: on-failure
     privileged: true
     ports:
-      - "9000:9000"
       - "10080:10080"
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-      - /mnt/share/m/Shared/html/:/var/www/html/
+      - /mnt/share/p/Shared/html/:/var/www/html/
     container_name: httpd
 
   mariadb:
-    image: mariadb:10.4
+    image: mariadb:10.3
     environment:
       MYSQL_ROOT_PASSWORD: sysadmin
     networks:
+      - frontend
       - backend
     restart: on-failure
     ports:
@@ -32,13 +31,28 @@ services:
       - "5444:5444" 
       - "5568:5568"
     volumes:
-     - /var/lib/mysql:/var/lib/mysql
+     - /opt/docker/volumes/mysql:/var/lib/mysql
      - ./mysql/dump:/docker-entrypoint-initdb.d
     container_name: mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links: 
+      - mariadb:db
+    ports:
+      - 8765:80
+    environment:
+      MYSQL_ROOT_PASSWORD: sysadmin
+    networks:
+      - backend
+    depends_on:
+      - mariadb
+    container_name: phpmyadmin
 
   memcached:
     image: memcached:1.5.12
     networks:
+      - frontend
       - backend
     restart: on-failure
     ports:
@@ -48,3 +62,4 @@ services:
 networks:
   frontend:
   backend:
+
